@@ -3,7 +3,7 @@ pub mod parser {
 
     pub trait Node {
         fn new_from_string(s: String) -> Self;
-        fn run(&self){}
+        fn run(&self) -> i32;
     }
 
     #[derive(Debug)]
@@ -15,10 +15,12 @@ pub mod parser {
         fn new_from_string(s: String) -> Tree {
             Tree {main: s.replace("\n", "").replace(";   ", ";").replace(";  ", ";").replace("; ", ";").split(';').map(|str| {Instruction::new_from_string(str.to_string())}).collect()}
         }
-        fn run(&self) -> () {
+        fn run(&self) -> i32 {
+            let mut res:i32 = 0; 
             for instr in self.main.as_slice() {
-                instr.run()
+                res = instr.run()
             }
+            return res;
         }
     }
 
@@ -36,14 +38,40 @@ pub mod parser {
             };
             Instruction { command: r.0.to_string(), args: r.1.to_string() }
         }
-        fn run(&self) {
+        fn run(&self) -> i32{
             if self.command.len() != 0 {
-                let mut path1 = String::from("/bin/");
+                let mut bin_path = String::from("/bin/");
                 for c in self.command.split("") {
-                    path1.push_str(c);
+                    bin_path.push_str(c);
                 }
-                
-                std::process::Command::new(&path1[..]).exec();
+                if std::path::Path::new(&bin_path).exists() {
+                    return match std::process::Command::new(&bin_path[..]).spawn() {
+                        Ok(mut x) => {match x.wait(){
+                            Ok(y) => y.code().unwrap_or(-1),
+                            _ => -1
+                        }},
+                        _ => -1
+                    }
+                }
+                // le cursed-o-meter s'affole
+                let mut rel_path = std::env::current_dir().unwrap_or_else(|_x| std::path::PathBuf::new()).as_os_str().to_str().unwrap().to_string();
+                for c in self.command.replacen("./", "/", 1) .split("") {
+                    rel_path.push_str(c);
+                }
+                //print!("{}",rel_path);
+                if std::path::Path::new(&rel_path).exists() {
+                    return match std::process::Command::new(&rel_path[..]).spawn() {
+                        Ok(mut x) => {match x.wait(){
+                            Ok(y) => y.code().unwrap_or(-1),
+                            _ => -1
+                        }},
+                        _ => -1
+                    }
+                }
+                -1
+            }
+            else {
+                -1
             }
         }
     }

@@ -1,5 +1,8 @@
 
 
+use core::time;
+use std::{path::PathBuf, thread::sleep};
+
 use crate::parser::parser::Node;
 
 mod parser;
@@ -7,9 +10,13 @@ mod io;
 
 
 //#[test]
-// fn teste(){
-    // print!("\x1b[1F");
-// }
+fn teste(){
+    let mut ch = std::process::Command::new("/home/rc/code/projet/hs24/a.out").spawn();
+    print!("owo");
+    sleep(time::Duration::from_secs(5));
+    let res = ch.unwrap().wait().unwrap().code().unwrap_or(-1);
+    print!("{:?}",res)
+}
 
 fn main() {
     // teste()
@@ -32,7 +39,7 @@ fn init_shell(){
 /// 5- Repeat
 fn main_loop(){
     //TODO 
-    let return_code: i32 = 0;
+    let mut return_code: i32 = 0;
 
     loop {
 
@@ -45,7 +52,7 @@ fn main_loop(){
                 print!("-> {}", &command);
                 let t = parser::parser::get_tree(command);
                 dbg!(&t);
-                t.run()
+                return_code = t.run();
             }
             Err(x) => { if x == 2048 {println!("Error while reading line")} else {
                 println!("Error before processing line (command too long)")}
