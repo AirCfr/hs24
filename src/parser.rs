@@ -45,14 +45,25 @@ pub mod parser {
                     bin_path.push_str(c);
                 }
                 if std::path::Path::new(&bin_path).exists() {
-                    return match std::process::Command::new(&bin_path[..]).spawn() {
+                    // return match std::process::Command::new(&bin_path[..]).spawn() {
+                        // Ok(mut x) => {match x.wait(){
+                            // Ok(y) => y.code().unwrap_or(-1),
+                            // _ => -1
+                        // }},
+                        // _ => -1
+                    // }
+
+                    return match std::process::Command::new(&bin_path[..]).args(self.args.split_whitespace()).spawn() {
                         Ok(mut x) => {match x.wait(){
                             Ok(y) => y.code().unwrap_or(-1),
                             _ => -1
                         }},
                         _ => -1
                     }
+
+
                 }
+
                 // le cursed-o-meter s'affole
                 let mut rel_path = std::env::current_dir().unwrap_or_else(|_x| std::path::PathBuf::new()).as_os_str().to_str().unwrap().to_string();
                 for c in self.command.replacen("./", "/", 1) .split("") {
@@ -60,7 +71,7 @@ pub mod parser {
                 }
                 //print!("{}",rel_path);
                 if std::path::Path::new(&rel_path).exists() {
-                    return match std::process::Command::new(&rel_path[..]).spawn() {
+                    return match std::process::Command::new(&rel_path[..]).args(self.args.split_whitespace()).spawn() {
                         Ok(mut x) => {match x.wait(){
                             Ok(y) => y.code().unwrap_or(-1),
                             _ => -1

@@ -1,7 +1,7 @@
 
 
 use core::time;
-use std::{path::PathBuf, thread::sleep};
+use std::{path::PathBuf, thread::sleep, io::BufReader, fs::read, ffi::OsString, os::unix::prelude::OsStringExt};
 
 use crate::parser::parser::Node;
 
@@ -26,8 +26,10 @@ fn main() {
 
 /// Init steps todo:
 fn init_shell(){
-    //TODO
-    std::env::set_var("HOSTNAME", "archlinux");
+    let mut r = read("/etc/hostname").unwrap_or_else(|x|{Vec::from([145,162,162])});
+    r.pop().unwrap();
+
+    std::env::set_var("HOSTNAME",  OsString::from_vec(r));
     main_loop()
 }
 
